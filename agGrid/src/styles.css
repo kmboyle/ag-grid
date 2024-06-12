@@ -3,3 +3,7 @@
 @import 'ag-grid-community/styles/ag-grid.css';
 /* Quartz Theme Specific CSS */
 @import 'ag-grid-community/styles/ag-theme-quartz.css';
+
+.ag-header-cell-label .ag-sort-indicator-container .ag-sort-order {
+    display: none !important
+  }

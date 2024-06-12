@@ -1,8 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpClientModule } from "@angular/common/http";
 import { RouterOutlet } from '@angular/router';
 import { AgGridAngular, ICellRendererAngularComp } from 'ag-grid-angular'; // AG Grid Component
-import { ColDef, ICellRendererParams, ValueGetterParams } from 'ag-grid-community'; // Column Definition Type Interface
-
+import { ColDef, GetGroupIncludeFooterParams, GridApi, GridOptions, GridReadyEvent, ICellRendererParams, ValueGetterParams } from 'ag-grid-community'; // Column Definition Type Interface
+import olympicData from './olympic-data.json';
+import 'ag-grid-enterprise';
+export interface IOlympicData {
+  athlete: string,
+  age: number | null,
+  country: string,
+  year: number,
+  date: string,
+  sport: string,
+  gold: number,
+  silver: number,
+  bronze: number,
+  total: number
+}
 // Add buttons, checkboxes or images to cells with a Cell Component.
 @Component({
   standalone: true,
@@ -21,17 +35,36 @@ import { ColDef, ICellRendererParams, ValueGetterParams } from 'ag-grid-communit
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, AgGridAngular],
+  imports: [RouterOutlet, AgGridAngular, HttpClientModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'agGrid';
+  private gridApi!: GridApi<any>;
   public rowSelection: 'single' | 'multiple' = 'multiple';
   public paginationPageSize = 10;
   public paginationPageSizeSelector: number[] | boolean = [10, 25, 50];
 
+  public rowDataGrouped: IOlympicData[] = olympicData;
 
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    // fetch('https://www.ag-grid.com/example-assets/olympic-winners')
+    // .then(response => response.json())
+    // .then(data => {
+    //   this.gridApi.setGridOption("rowData", data);
+    // });
+  }
+
+  onGridReady(params: GridReadyEvent) {
+    // this.http
+    //   .get<
+    //     IOlympicData[]
+    //   >("https://www.ag-grid.com/example-assets/olympic-winners.json")
+    //   .subscribe((data) => (this.rowDataGrouped = data));
+  }
 
   /*
   Column Definitions: Defines the columns to be displayed.
@@ -368,6 +401,33 @@ export class AppComponent {
       month: "May",
     },
   ];
+
+  public groupedColumnDefs: ColDef[] = [
+    { field: 'athlete' },
+    { field: 'age' },
+    { field: 'country', rowGroup: true, hide: true },
+    { field: 'sport' },
+    { field: 'year' },
+    { field: 'date' },
+    { field: 'gold' },
+    { field: 'silver' },
+    { field: 'bronze' },
+    { field: 'total' },
+  ];
+
+  public groupedGridOptions: GridOptions = {
+    columnDefs: this.groupedColumnDefs,
+    groupRemoveSingleChildren: true,
+    groupIncludeFooter: (params: GetGroupIncludeFooterParams) => {
+      const node = params.node;
+      if (node && node.level === 1) return true;
+      if (node && node.key === "France") return true;
+  
+      return false;
+    },
+  }
+
+
   public columnDefs: ColDef[] = [
     {
       field: "make",
@@ -387,9 +447,11 @@ export class AppComponent {
           "Jaguar",
         ],
       },
+      sortIndex: 1,
+      sort: 'asc',
     },
-    { field: "model" },
-    { field: "price", filter: "agNumberColumnFilter" },
+    { field: "model", sortIndex: 2,  sort: 'asc'},
+    { field: "price", filter: "agNumberColumnFilter", sortIndex: 3,  sort: 'asc', },
     { field: "electric" },
     {
       field: "month",
